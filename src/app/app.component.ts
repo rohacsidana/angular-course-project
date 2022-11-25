@@ -7,9 +7,9 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'course-project';
-  lastClicked: string='recipe';
+  lastClicked: string = 'shoppingList';
 
   clicked(event: string) {
-    this.lastClicked = event;    
+    this.lastClicked = event;
   }
 }
