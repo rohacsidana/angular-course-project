@@ -1,10 +1,9 @@
 import { SlicePipe } from '@angular/common';
-import { EventEmitter } from '@angular/core';
 import { Ingredient } from '../shared/ingredient.model';
+import { Subject } from 'rxjs';
 
 export class ShoppingListService {
-  ingredientsChanged = new EventEmitter<Ingredient[]>();
-  //manage shopping list, add ingredient method
+  ingredientsChanged = new Subject<Ingredient[]>();
 
   private ingredients: Ingredient[] = [
     new Ingredient('Apple', 5),
@@ -39,7 +38,7 @@ export class ShoppingListService {
     }
     console.log(this.ingredients);
 
-    this.ingredientsChanged.emit(this.ingredients.slice());
+    this.ingredientsChanged.next(this.ingredients.slice());
   }
 
   addIngredients(ingredients: Ingredient[]) {
@@ -48,6 +47,6 @@ export class ShoppingListService {
     }
 
     //this.ingredients.push(...ingredients); push elfogad több objectet pusholásra, egy tömb elemeit így tudjuk egyesével átadni, tehát nem magát a tömböt, mint object
-    this.ingredientsChanged.emit(this.ingredients.slice());
+    this.ingredientsChanged.next(this.ingredients.slice());
   }
 }
