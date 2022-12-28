@@ -1,5 +1,14 @@
-import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
-import { Ingredient } from 'src/app/shared/ingredient.model';
+import {
+  Component,
+  OnInit,
+  ElementRef,
+  ViewChild,
+  OnDestroy,
+} from '@angular/core';
+import { FormGroup, NgForm } from '@angular/forms';
+import { Subscription } from 'rxjs-compat';
+
+import { Ingredient } from '../../shared/ingredient.model';
 import { ShoppingListService } from '../shopping-list.service';
 
 @Component({
@@ -7,18 +16,54 @@ import { ShoppingListService } from '../shopping-list.service';
   templateUrl: './shopping-edit.component.html',
   styleUrls: ['./shopping-edit.component.css'],
 })
-export class ShoppingEditComponent {
-  @ViewChild('nameInput', { static: true }) ingredientName;
-  @ViewChild('amountInput', { static: true }) ingredientAmount;
+export class ShoppingEditComponent implements OnInit, OnDestroy {
+  @ViewChild('f', { static: false }) slForm: NgForm;
+  subscription: Subscription;
+  editMode = false;
+  editedItemIndex: number;
+  editedItem: Ingredient;
 
-  constructor(private shoppingListService: ShoppingListService) {}
+  constructor(private slService: ShoppingListService) {}
 
-  addIngredient() {
-    this.shoppingListService.addIngredient(
-      new Ingredient(
-        this.ingredientName.nativeElement.value,
-        parseInt(this.ingredientAmount.nativeElement.value)
-      )
+  ngOnInit() {
+    this.subscription = this.slService.startedEditing.subscribe(
+      (index: number) => {
+        this.editedItemIndex = index;
+        this.editMode = true;
+        this.editedItem = this.slService.getIngredient(index);
+        this.slForm.setValue({
+          name: this.editedItem.name,
+          amount: this.editedItem.amount,
+        });
+      }
     );
+  }
+
+  onSubmit(form: FormGroup) {
+    const value = form.value;
+    const name = value.name;
+    const amount = value.amount;
+    const newIngredient = new Ingredient(name, amount);
+    if (this.editMode) {
+      this.slService.updateIngredient(this.editedItemIndex, newIngredient);
+    } else {
+      this.slService.addIngredient(newIngredient);
+    }
+    this.editMode = false;
+    form.reset();
+  }
+
+  onDelete() {
+    this.slService.deleteIngredient(this.editedItemIndex);
+    this.onClear();
+  }
+
+  onClear() {
+    this.slForm.reset();
+    this.editMode = false;
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 }
