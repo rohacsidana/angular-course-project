@@ -6,8 +6,8 @@ import { Recipe } from './recipes.model';
 @Injectable()
 export class RecipeService {
   recipesChanged = new Subject<Recipe[]>();
-
-  private recipes: Recipe[] = [
+  private recipes: Recipe[] = [];
+  /* private recipes: Recipe[] = [
     new Recipe(
       'Spaghetti Carbonara',
       'Make the ultimate spaghetti carbonara with a creamy hollandaise-style sauce and crisp pancetta or guanciale. You can also mix in an egg yolk at the end.',
@@ -24,9 +24,14 @@ export class RecipeService {
         new Ingredient('Egg', 2),
       ]
     ),
-  ];
+  ]; */
 
   constructor(private slService: ShoppingListService) {}
+
+  setRecipes(recipes: Recipe[]) {
+    this.recipes = recipes;
+    this.recipesChanged.next(this.recipes.slice());
+  }
 
   getRecipes() {
     return this.recipes.slice(); //returns a copy of the array, not the actual array bc of slice()
