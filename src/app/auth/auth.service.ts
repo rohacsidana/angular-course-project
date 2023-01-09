@@ -1,8 +1,9 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Subject, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
+import { throwError, BehaviorSubject } from 'rxjs';
+
 import { User } from './user.model';
 
 export interface AuthResponseData {
@@ -25,7 +26,7 @@ export class AuthService {
   signup(email: string, password: string) {
     return this.http
       .post<AuthResponseData>(
-        'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyANM5z-r2fQhIP8dbXcNc2yHd_0eVrCPV8',
+        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyANM5z-r2fQhIP8dbXcNc2yHd_0eVrCPV8',
         {
           email: email,
           password: password,
@@ -48,7 +49,7 @@ export class AuthService {
   login(email: string, password: string) {
     return this.http
       .post<AuthResponseData>(
-        'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyANM5z-r2fQhIP8dbXcNc2yHd_0eVrCPV8',
+        'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyANM5z-r2fQhIP8dbXcNc2yHd_0eVrCPV8',
         {
           email: email,
           password: password,
@@ -78,6 +79,7 @@ export class AuthService {
     if (!userData) {
       return;
     }
+
     const loadedUser = new User(
       userData.email,
       userData.id,
@@ -99,7 +101,7 @@ export class AuthService {
     this.router.navigate(['/auth']);
     localStorage.removeItem('userData');
     if (this.tokenExpirationTimer) {
-      clearInterval(this.tokenExpirationTimer);
+      clearTimeout(this.tokenExpirationTimer);
     }
     this.tokenExpirationTimer = null;
   }
@@ -124,27 +126,21 @@ export class AuthService {
   }
 
   private handleError(errorRes: HttpErrorResponse) {
-    console.log(errorRes);
-
-    let errorMessage = 'An unknown error occured!';
+    let errorMessage = 'An unknown error occurred!';
     if (!errorRes.error || !errorRes.error.error) {
       return throwError(errorMessage);
     }
     switch (errorRes.error.error.message) {
       case 'EMAIL_EXISTS':
-        errorMessage = 'This email already exists!';
+        errorMessage = 'This email exists already';
         break;
       case 'EMAIL_NOT_FOUND':
-        errorMessage = 'This email does not exist in our database!';
+        errorMessage = 'This email does not exist.';
         break;
       case 'INVALID_PASSWORD':
-        errorMessage = 'Incorrect password!';
-        break;
-      case 'USER_DISABLED':
-        errorMessage = 'User is disabled by an administrator!';
+        errorMessage = 'This password is not correct.';
         break;
     }
-
     return throwError(errorMessage);
   }
 }
